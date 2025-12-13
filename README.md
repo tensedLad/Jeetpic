@@ -1,16 +1,84 @@
-# React + Vite
+# Jeetpic Website Clone
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-fidelity, pixel-perfect clone of the Jeetpic marketing website, built using **React (Vite)** and **Tailwind CSS**.
 
-Currently, two official plugins are available:
+## 🚀 Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This project replicates the design and functionality of the Jeetpic brand website. It features a modern, responsive user interface with custom styling, smooth navigation, and interactive elements. The design focuses on brand consistency, visual appeal, and user experience.
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Responsive Design**: Fully responsive layout optimized for mobile, tablet, and desktop devices.
+- **Modern UI/UX**: Clean aesthetic with brand-specific colors (Red: `#B91C1C` / `#EF4444`, Blue: `#1E3A8A` / `#2563EB`).
+- **Functional Components**:
+  - **Hero Section**: Engaging main section with call-to-action buttons.
+  - **Promise Section**: Feature highlights with custom icons.
+  - **Comparison Table**: Styled data presentation comparing brand benefits.
+  - **Trust Section**: Trust indicators with icons and high-contrast styling.
+  - **Partner Form**: Functional-looking enquiry form with validation styles.
+  - **Footer**: Comprehensive footer with social links and navigation.
+- **Smooth Navigation**: One-page navigation with smooth scrolling to sections (`#home`, `#why-jeetpic`, `#distributor-enquiry`, `#contact`).
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Framework**: [React](https://react.dev/) (powered by [Vite](https://vitejs.dev/))
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Language**: JavaScript (JSX)
+
+## 📦 Installation & Running
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd JP
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Start the development server:**
+    ```bash
+    npm run dev
+    ```
+
+4.  **Open in Browser:**
+    Navigate to `http://localhost:5173/` (or the port shown in your terminal).
+
+## 🏗️ Building for Production
+
+To create an optimized production build:
+
+```bash
+npm run build
+```
+
+The output will be in the `dist` folder, ready for deployment.
+
+## 📁 Project Structure
+
+```
+d:/JP/
+├── public/              # Static assets
+├── src/
+│   ├── assets/          # Images (jeetpic.png) and branding
+│   ├── components/      # React components (Header, Hero, Footer, etc.)
+│   ├── App.jsx          # Main application component
+│   ├── main.jsx         # Entry point
+│   └── index.css        # Global styles & Tailwind directives
+├── index.html           # HTML template
+├── package.json         # Dependencies and scripts
+└── README.md            # Project documentation
+```
+
+## 🎨 Customizations
+
+- **Colors**: Custom primary colors are configured in the Tailwind theme extension.
+- **Fonts**: Uses a clean sans-serif system font stack for readability.
+- **Images**: Product images are located in `src/assets`.
+
+---
+
+© 2025 Jeetpic Clone Project. All rights reserved.
