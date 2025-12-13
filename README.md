@@ -1,4 +1,4 @@
-# Jeetpic Website Clone
+# Jeetpic Website
 
 A high-fidelity, pixel-perfect clone of the Jeetpic marketing website, built using **React (Vite)** and **Tailwind CSS**.
 
