@@ -1,37 +1,94 @@
-import React from 'react';
-
+import { Check, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 const ComparisonTable = () => {
-    return (
-        <section className="py-16 px-6 md:px-12 text-center">
-            <div className="max-w-7xl mx-auto">
-                <h2 className="text-3xl font-bold text-white mb-10 drop-shadow-md">Jeetpic Vs Leading Brands</h2>
+    const stats = [
+        { feature: "Origin", jeetpic: "Indian (Swadeshi)", other: "Foreign MNC", isJeetpicBetter: true },
+        { feature: "Thickness", jeetpic: "Extra Thick", other: "Standard", isJeetpicBetter: true },
+        { feature: "Stain Removal", jeetpic: "2-3 minutes", other: "5-7 minutes", isJeetpicBetter: true },
+        { feature: "Hard Water Action", jeetpic: "Effective Cleaning", other: "Loses Power", isJeetpicBetter: true },
+        { feature: "Fragrance", jeetpic: "Long-lasting Fresh", other: "Moderate", isJeetpicBetter: true },
+    ];
 
-                <div className="max-w-4xl mx-auto overflow-hidden rounded-lg shadow-2xl">
+    return (
+        <section className="py-16 px-6 md:px-12 text-center relative overflow-hidden">
+            <div className="max-w-7xl mx-auto relative z-10">
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-md">See why Jeetpic is the smarter choice</h2>
+                    <p className="text-blue-100 mb-10">Better Performance. Lower Price. Maximum Profit.</p>
+                </motion.div>
+
+                <motion.div
+                    className="max-w-4xl mx-auto overflow-hidden rounded-lg shadow-2xl bg-white"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2, duration: 0.6 }}
+                >
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-blue-900 text-white">
-                                <th className="p-4 font-bold">Product</th>
-                                <th className="p-4 font-bold">Price</th>
-                                <th className="p-4 font-bold">Thickness</th>
-                                <th className="p-4 font-bold">Stain Removal Speed</th>
+                            <tr className="bg-blue-900 text-white text-lg">
+                                <th className="p-5 font-bold">Feature</th>
+                                <th className="p-5 font-bold bg-blue-800">Jeetpic</th>
+                                <th className="p-5 font-bold text-gray-300">Leading Brand</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="bg-blue-600 text-white">
-                                <td className="p-4 font-bold text-white">Jeetpic</td>
-                                <td className="p-4 font-bold text-white">₹79 / 500ml</td>
-                                <td className="p-4 text-gray-100">Thick (Clings to rim)</td>
-                                <td className="p-4 text-gray-100">Fast — 2-5 min</td>
-                            </tr>
-                            <tr className="bg-blue-100 text-gray-800">
-                                <td className="p-4 font-semibold">Leading Brand</td>
-                                <td className="p-4">₹150 / 500ml</td>
-                                <td className="p-4">Thin (Runs off)</td>
-                                <td className="p-4">Slow — 10+ min</td>
-                            </tr>
+                            {stats.map((row, index) => (
+                                <motion.tr
+                                    key={index}
+                                    className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.1 * index, duration: 0.4 }}
+                                >
+                                    <td className="p-4 font-semibold text-gray-800">{row.feature}</td>
+                                    <td className="p-4 font-bold text-gray-900 bg-blue-50/50">
+                                        <div className="flex items-center gap-2">
+                                            {row.isJeetpicBetter === true && <Check className="text-green-600" size={20} />}
+                                            {row.isJeetpicBetter === "equal" && <span className="w-5"></span>}
+                                            {row.jeetpic}
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            {row.isJeetpicBetter === true && <X className="text-red-500" size={20} />}
+                                            {row.isJeetpicBetter === "equal" && <span className="w-5"></span>}
+                                            {row.other}
+                                        </div>
+                                    </td>
+                                </motion.tr>
+                            ))}
                         </tbody>
                     </table>
-                </div>
+                    <motion.div
+                        className="p-6 bg-gray-50 bg-linear-to-b from-gray-50 to-gray-100"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        <h3 className="text-xl font-bold text-gray-900">Better Performance. Lower Price. Maximum Profit.</h3>
+                        <p className="text-gray-600 mt-2">Give your customers what they deserve without breaking their budget.</p>
+
+                        <motion.button
+                            className="mt-4 bg-blue-800 text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-blue-900"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.6 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Check ROI Calculator
+                        </motion.button>
+                    </motion.div>
+                </motion.div>
             </div>
         </section>
     );
