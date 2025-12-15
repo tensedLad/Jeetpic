@@ -10,13 +10,17 @@ import FloatingLemons from './components/FloatingLemons'
 function App() {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gradient-to-b from-blue-900 via-blue-600 to-white text-white relative">
-      <FloatingLemons />
       <Header />
-      <main className="flex-grow pt-20 relative z-10">
-        <Hero />
-        <PromiseSection />
-        <ComparisonTable />
-        <TrustSection />
+      <main className="flex-grow pt-20">
+        <div className="relative">
+          <FloatingLemons />
+          <div className="relative z-10">
+            <Hero />
+            <PromiseSection />
+            <ComparisonTable />
+            <TrustSection />
+          </div>
+        </div>
         <PartnerForm />
       </main>
       <Footer />

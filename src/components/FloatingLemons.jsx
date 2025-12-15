@@ -29,7 +29,7 @@ const FloatingLemons = () => {
     }, []);
 
     return (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden h-full w-full">
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden w-full h-full">
             {lemons.map((lemon) => (
                 <motion.img
                     key={lemon.id}
