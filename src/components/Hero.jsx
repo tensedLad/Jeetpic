@@ -45,10 +45,12 @@ const Hero = () => {
                 >
 
 
-                    <img
+                    <motion.img
                         src={productImg}
                         alt="Jeetpic Bottle"
-                        className="w-64 md:w-80 lg:w-96 drop-shadow-2xl"
+                        className="w-64 md:w-80 lg:w-96 drop-shadow-2xl cursor-pointer"
+                        whileHover={{ scale: 1.1, y: -10 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 10 }}
                     />
                 </motion.div>
             </div>

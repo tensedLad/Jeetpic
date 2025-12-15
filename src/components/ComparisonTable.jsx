@@ -31,10 +31,10 @@ const ComparisonTable = () => {
                 >
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-blue-900 text-white text-lg">
-                                <th className="p-5 font-bold">Feature</th>
+                            <tr className="text-white text-lg">
+                                <th className="p-5 font-bold bg-gray-800">Feature</th>
                                 <th className="p-5 font-bold bg-blue-800">Jeetpic</th>
-                                <th className="p-5 font-bold text-gray-300">Leading Brand</th>
+                                <th className="p-5 font-bold bg-red-700">Leading Brand</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,17 +76,7 @@ const ComparisonTable = () => {
                         <h3 className="text-xl font-bold text-gray-900">Better Performance. Lower Price. Maximum Profit.</h3>
                         <p className="text-gray-600 mt-2">Give your customers what they deserve without breaking their budget.</p>
 
-                        <motion.button
-                            className="mt-4 bg-blue-800 text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-blue-900"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.6 }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Check ROI Calculator
-                        </motion.button>
+
                     </motion.div>
                 </motion.div>
             </div>
