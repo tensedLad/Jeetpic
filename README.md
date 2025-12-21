@@ -76,6 +76,15 @@ d:/JP/
   - **Jeetpic Blue**: `#1E3A8A` to `#2563EB` (Background gradients, text headers)
 - **Typography**: Clean, modern sans-serif fonts for readability and professional appeal.
 
+## 🤝 Contributing
+
+We welcome contributions from the community! If you've forked this repository and want to contribute your changes back, please see our [Contributing Guide](CONTRIBUTING.md) for detailed instructions on:
+
+- How to merge changes from forked repositories
+- Creating and managing pull requests
+- Resolving merge conflicts
+- Best practices for contributors
+
 ---
 
 © 2025 Jeetpic. All rights reserved.
