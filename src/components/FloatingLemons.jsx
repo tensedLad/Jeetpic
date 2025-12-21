@@ -13,6 +13,7 @@ const FloatingLemons = () => {
         const lemonImages = [lemon1, lemon2, lemon3];
         const lemonCount = 20; // Increased total lemons for better distribution
         const newLemons = [];
+        let idCounter = 0;
 
         for (let i = 0; i < lemonCount; i++) {
             const topPercent = Math.random() * 90;

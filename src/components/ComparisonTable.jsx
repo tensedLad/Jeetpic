@@ -23,7 +23,7 @@ const ComparisonTable = () => {
                 </motion.div>
 
                 <motion.div
-                    className="max-w-4xl mx-auto overflow-hidden rounded-lg shadow-2xl bg-white"
+                    className="max-w-4xl mx-auto overflow-hidden rounded-lg shadow-2xl bg-white overflow-x-auto"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}

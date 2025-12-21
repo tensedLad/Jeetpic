@@ -25,7 +25,7 @@ const Hero = () => {
                     </p>
                     <div className="flex flex-wrap gap-4 pt-4">
                         <motion.button
-                            className="bg-red-700 text-white font-semibold py-3 px-6 rounded shadow-lg"
+                            className="bg-red-700 text-white font-semibold py-3 px-6 rounded shadow-lg w-full md:w-auto text-center justify-center"
                             whileHover={{ scale: 1.05, backgroundColor: '#991B1B' }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate('/shop')}
