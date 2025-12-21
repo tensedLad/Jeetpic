@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import FloatingLemons from './FloatingLemons';
+import { database } from '../firebase';
+import { ref, push, set, query, orderByChild, limitToLast, get } from 'firebase/database';
+import pdfMake from "pdfmake/build/pdfmake";
+import { generateInvoiceNumber, getInvoiceDocDefinition } from '../utils/invoiceGenerator';
 
 const QuickStorePage = () => {
     const [cart, setCart] = useState({
@@ -112,7 +116,7 @@ const QuickStorePage = () => {
             const currentIndex = prev[productId];
             const product = products.find(p => p.id === productId);
             const maxIndex = product.images.length - 1;
-            
+
             if (direction === 'next') {
                 return { ...prev, [productId]: currentIndex >= maxIndex ? 0 : currentIndex + 1 };
             } else {
@@ -189,6 +193,11 @@ const QuickStorePage = () => {
         }
     };
 
+    const generateInvoicePDF = (orderData) => {
+        const docDefinition = getInvoiceDocDefinition(orderData);
+        pdfMake.createPdf(docDefinition).download(`Jeetpic_Invoice_${orderData.orderNumberFormatted}.pdf`);
+    };
+
     const handlePlaceOrder = async () => {
         if (!details.name || !details.phone || !details.address) {
             alert('Please fill in all required fields');
@@ -198,56 +207,69 @@ const QuickStorePage = () => {
         setLoading(true);
 
         try {
-            const orderData = {
-                customer: details,
-                items: cart,
-                amount: calculateTotal().total
-            };
+            const orderRef = ref(database, 'orders');
 
-            // Store order data for confirmation page
-            const confirmationData = {
-                customer: details,
-                items: cart,
-                totals: calculateTotal(),
-                orderNumber: Date.now(),
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('jeetpic_order_data', JSON.stringify(confirmationData));
+            // 1. Fetch last invoice number
+            let lastInvoiceNumber = null;
+            // Use default ordering (by key) which is chronological for Firebase push IDs
+            // This avoids the need for manual index creation on 'orderNumberFormatted'
+            const lastOrderQuery = query(orderRef, limitToLast(1));
+            const snapshot = await get(lastOrderQuery);
 
-            const response = await fetch('/api/create-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderData),
-            });
-
-            const result = await response.json();
-
-            if (result.whatsappUrl) {
-                window.location.href = result.whatsappUrl;
-            } else {
-                // Fallback
-                const fallbackMessage = `*NEW ORDER* 🚀\n------------------\n*Name:* ${details.name}\n*Location:* ${details.address} (${details.pincode})\n------------------\n*Items:*\n${Object.entries(cart).filter(([_, qty]) => qty > 0).map(([id, qty]) => `• ${products.find(p => p.id === id).name} x ${qty}`).join('\n')}\n------------------\n*Total to Pay: ₹${calculateTotal().total}* (COD)`;
-                const whatsappUrl = `https://wa.me/919830117727?text=${encodeURIComponent(fallbackMessage)}`;
-                window.location.href = whatsappUrl;
+            if (snapshot.exists()) {
+                const lastOrder = Object.values(snapshot.val())[0];
+                lastInvoiceNumber = lastOrder.orderNumberFormatted;
             }
+
+            // 2. Generate new invoice number
+            const newInvoiceNumber = generateInvoiceNumber(lastInvoiceNumber);
+
+            const newOrderRef = push(orderRef);
+
+            const timestamp = new Date().toISOString();
+
+            // Create list of processed items for easier invoice generation later
+            const processedItems = Object.entries(cart)
+                .filter(([_, qty]) => qty > 0)
+                .map(([id, qty]) => {
+                    const product = products.find(p => p.id === id);
+                    return {
+                        name: product.name,
+                        quantity: qty,
+                        price: product.price,
+                        total: product.price * qty
+                    };
+                });
+
+            const orderData = {
+                orderId: newOrderRef.key,
+                orderNumber: newInvoiceNumber, // Legacy ID for fallback
+                orderNumberFormatted: newInvoiceNumber, // New Main ID
+                timestamp: timestamp,
+                customer: details,
+                items: cart,
+                processedItems: processedItems, // Saved for easy invoice gen
+                totals: calculateTotal(),
+                status: 'pending', // Initial status
+                device: 'web'
+            };
+
+            // Push to Firebase
+            await set(newOrderRef, orderData);
+
+            // Store for confirmation page
+            setStoredOrderData(orderData);
+            setOrderPlaced(true);
+
+            // Generate PDF immediately
+            generateInvoicePDF(orderData);
+
+            // Clear local storage if any (legacy)
+            localStorage.removeItem('jeetpic_order_data');
+
         } catch (error) {
             console.error('Order placement failed:', error);
-            // Still store the data for confirmation even if API fails
-            const confirmationData = {
-                customer: details,
-                items: cart,
-                totals: calculateTotal(),
-                orderNumber: Date.now(),
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('jeetpic_order_data', JSON.stringify(confirmationData));
-
-            // Fallback to WhatsApp
-            const fallbackMessage = `*NEW ORDER* 🚀\n------------------\n*Name:* ${details.name}\n*Location:* ${details.address} (${details.pincode})\n------------------\n*Items:*\n${Object.entries(cart).filter(([_, qty]) => qty > 0).map(([id, qty]) => `• ${products.find(p => p.id === id).name} x ${qty}`).join('\n')}\n------------------\n*Total to Pay: ₹${calculateTotal().total}* (COD)`;
-            const whatsappUrl = `https://wa.me/919830117727?text=${encodeURIComponent(fallbackMessage)}`;
-            window.location.href = whatsappUrl;
+            alert(`Error: ${error.message}. Please try again.`);
         } finally {
             setLoading(false);
         }
@@ -271,7 +293,7 @@ const QuickStorePage = () => {
                                     </svg>
                                 </div>
                                 <h2 className="text-2xl font-bold text-green-600 mb-2">Order Placed Successfully!</h2>
-                                <p className="text-gray-600">Thank you for your order. Your order has been sent to WhatsApp.</p>
+                                <p className="text-gray-600">Your invoice has been downloaded automatically.</p>
                             </div>
 
                             <h3 className="text-xl font-semibold mb-6 text-center">Order Invoice</h3>
@@ -363,9 +385,16 @@ const QuickStorePage = () => {
 
                             <div className="mt-6 text-center">
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                                    <p className="text-green-800 font-medium">✅ Your order has been successfully sent to WhatsApp!</p>
-                                    <p className="text-green-600 text-sm mt-1">Our team will contact you shortly to confirm delivery details.</p>
+                                    <p className="text-green-800 font-medium">✅ Your order has been successfully placed!</p>
+                                    <p className="text-green-600 text-sm mt-1">Your invoice has been downloaded automatically.</p>
                                 </div>
+                                <button
+                                    onClick={() => generateInvoicePDF(storedOrderData)}
+                                    className="bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-900 flex items-center justify-center gap-2 mx-auto mb-4"
+                                >
+                                    <Download className="w-5 h-5" />
+                                    Download Invoice Again
+                                </button>
                                 <button
                                     onClick={() => {
                                         // Reset the form for a new order
@@ -582,7 +611,7 @@ const QuickStorePage = () => {
                                         ) : (
                                             <>
                                                 <ShoppingCart className="w-5 h-5" />
-                                                Place Order on WhatsApp
+                                                Place Order
                                             </>
                                         )}
                                     </button>
@@ -643,7 +672,7 @@ const QuickStorePage = () => {
                                     className="w-full h-full object-cover"
                                     onError={(e) => e.target.src = `https://via.placeholder.com/600x600?text=${selectedProduct.name}`}
                                 />
-                                
+
                                 {/* Navigation buttons for large image */}
                                 {selectedProduct.images.length > 1 && (
                                     <>
@@ -659,18 +688,17 @@ const QuickStorePage = () => {
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
-                                        
+
                                         {/* Image indicators */}
                                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                                             {selectedProduct.images.map((_, index) => (
                                                 <button
                                                     key={index}
                                                     onClick={() => setCurrentImageIndex(prev => ({ ...prev, [selectedProduct.id]: index }))}
-                                                    className={`w-2 h-2 rounded-full transition-colors ${
-                                                        index === currentImageIndex[selectedProduct.id]
-                                                            ? 'bg-white'
-                                                            : 'bg-white/50 hover:bg-white/70'
-                                                    }`}
+                                                    className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex[selectedProduct.id]
+                                                        ? 'bg-white'
+                                                        : 'bg-white/50 hover:bg-white/70'
+                                                        }`}
                                                 />
                                             ))}
                                         </div>

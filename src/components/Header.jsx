@@ -1,8 +1,11 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
+    const navigate = useNavigate();
+
     return (
         <motion.header
             className="fixed top-0 left-0 w-full z-50 bg-[#B91C1C] text-white shadow-md"
@@ -13,6 +16,7 @@ const Header = () => {
             <div className="max-w-7xl mx-auto py-4 px-6 md:px-12 flex justify-between items-center">
                 <div className="flex items-center space-x-8">
                     <motion.div
+                        onClick={() => navigate('/')}
                         className="text-2xl font-bold italic tracking-wider cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                     >
@@ -34,7 +38,8 @@ const Header = () => {
                         Become a Distributor
                     </motion.button>
                     <motion.button
-                        className="border border-white hover:bg-white hover:text-[#B91C1C] text-white text-sm font-semibold py-2 px-4 rounded flex items-center gap-2 transition-colors"
+                        onClick={() => navigate('/shop')}
+                        className="border border-white hover:bg-white hover:text-[#B91C1C] text-white text-sm font-semibold py-2 px-4 rounded flex items-center gap-2 transition-colors cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
