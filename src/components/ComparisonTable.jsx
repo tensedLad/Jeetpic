@@ -10,7 +10,7 @@ const ComparisonTable = () => {
     ];
 
     return (
-        <section id="why-jeetpic" className="py-16 px-6 md:px-12 text-center relative overflow-hidden scroll-mt-32">
+        <section id="why-jeetpic" className="py-16 px-6 md:px-12 text-center relative overflow-hidden scroll-mt-32 text-gray-900">
             <div className="max-w-7xl mx-auto relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -18,8 +18,8 @@ const ComparisonTable = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-md">See why Jeetpic is the smarter choice</h2>
-                    <p className="text-blue-100 mb-10">Better Performance. Lower Price. Maximum Profit.</p>
+                    <h2 className="text-3xl font-bold mb-4 drop-shadow-md">See why Jeetpic is the smarter choice</h2>
+                    <p className="text-gray-600 mb-10">Better Performance. Lower Price. Maximum Profit.</p>
                 </motion.div>
 
                 <motion.div

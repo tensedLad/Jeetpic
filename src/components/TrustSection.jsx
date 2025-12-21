@@ -22,7 +22,7 @@ const TrustSection = () => {
     ];
 
     return (
-        <section className="py-10 px-6 md:px-12">
+        <section className="py-10 px-6 md:px-12 text-gray-900">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-center gap-10 md:gap-20">
                 {items.map((item, index) => (
                     <motion.div
