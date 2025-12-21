@@ -42,7 +42,7 @@ const TrustSection = () => {
                         </motion.div>
                         <div className="text-black">
                             <h4 className="font-bold">{item.title}</h4>
-                            <p className="text-xs text-gray-900 max-w-[150px]">{item.desc}</p>
+                            <p className="text-xs text-gray-900 w-full md:max-w-[150px]">{item.desc}</p>
                         </div>
                     </motion.div>
                 ))}

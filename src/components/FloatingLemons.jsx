@@ -9,22 +9,44 @@ const FloatingLemons = () => {
 
     useEffect(() => {
         const lemonImages = [lemon1, lemon2, lemon3];
-        const lemonCount = 8; // Limited to 8 as requested
         const newLemons = [];
+        let idCounter = 0;
 
-        for (let i = 0; i < lemonCount; i++) {
-            newLemons.push({
-                id: i,
-                src: lemonImages[Math.floor(Math.random() * lemonImages.length)],
-                left: `${Math.random() * 90}%`, // Keep within horizontal bounds
-                top: `${Math.random() * 90}%`,  // Keep within vertical bounds
-                scale: Math.random() * 1.0 + 0.8, // Increased size: 0.8x to 1.8x
-                rotate: Math.random() * 360,
-                duration: Math.random() * 10 + 5, // Faster float for more life
-                delay: Math.random() * 2,
-                floatY: Math.random() * 60 - 30, // Gentle float range
-            });
-        }
+        // Configuration for tiered distribution to control density gradually
+        const tiers = [
+            { count: 8, minTop: 2, maxTop: 30 },   // Top tier: High density (8 lemons)
+            { count: 6, minTop: 30, maxTop: 60 },  // Middle tier: Medium density (6 lemons)
+            { count: 4, minTop: 60, maxTop: 90 }   // Bottom tier: Lower density (4 lemons)
+        ];
+
+        tiers.forEach(tier => {
+            const countPerSide = tier.count / 2;
+
+            for (let i = 0; i < tier.count; i++) {
+                const isLeft = i < countPerSide;
+
+                // Random position within the tier's vertical range
+                const randomTop = Math.random() * (tier.maxTop - tier.minTop) + tier.minTop;
+
+                // Random position for left/right side
+                // Left: 0-40%, Right: 60-100% (keeping center clear for content)
+                const randomLeft = isLeft
+                    ? Math.random() * 40
+                    : (Math.random() * 40 + 60);
+
+                newLemons.push({
+                    id: idCounter++,
+                    src: lemonImages[Math.floor(Math.random() * lemonImages.length)],
+                    left: `${randomLeft}%`,
+                    top: `${randomTop}%`,
+                    scale: Math.random() * 1.0 + 0.8, // 0.8x to 1.8x
+                    rotate: Math.random() * 360,
+                    duration: Math.random() * 10 + 5,
+                    delay: Math.random() * 2,
+                    floatY: Math.random() * 60 - 30,
+                });
+            }
+        });
         setLemons(newLemons);
     }, []);
 

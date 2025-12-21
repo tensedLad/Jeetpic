@@ -22,7 +22,7 @@ const Hero = () => {
                     </p>
                     <div className="flex flex-wrap gap-4 pt-4">
                         <motion.button
-                            className="bg-red-700 text-white font-semibold py-3 px-6 rounded shadow-lg"
+                            className="bg-red-700 text-white font-semibold py-3 px-6 rounded shadow-lg w-full md:w-auto text-center justify-center"
                             whileHover={{ scale: 1.05, backgroundColor: '#991B1B' }}
                             whileTap={{ scale: 0.95 }}
                         >
@@ -30,7 +30,7 @@ const Hero = () => {
                         </motion.button>
                         <motion.a
                             href="#why-jeetpic"
-                            className="bg-white text-gray-900 font-semibold py-3 px-6 rounded shadow-lg inline-block"
+                            className="bg-white text-gray-900 font-semibold py-3 px-6 rounded shadow-lg inline-block w-full md:w-auto text-center justify-center"
                             whileHover={{ scale: 1.05, backgroundColor: '#F3F4F6' }}
                             whileTap={{ scale: 0.95 }}
                         >
