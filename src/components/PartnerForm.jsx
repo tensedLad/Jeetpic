@@ -16,7 +16,7 @@ const PartnerForm = () => {
     };
 
     return (
-        <section id="distributor-enquiry" className="py-16 px-6 md:px-12 relative overflow-hidden">
+        <section id="distributor-form" className="py-16 px-6 md:px-12 relative overflow-hidden text-gray-900">
             <motion.div
                 className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-12 relative z-10"
                 initial={{ opacity: 0, y: 30 }}

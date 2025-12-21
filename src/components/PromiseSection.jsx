@@ -26,7 +26,7 @@ const PromiseSection = () => {
     ];
 
     return (
-        <section className="pb-20 px-6 md:px-12 relative overflow-hidden">
+        <section className="pb-20 px-6 md:px-12 relative overflow-hidden text-gray-900">
             <div className="max-w-7xl mx-auto relative z-10">
                 <div className="text-center mb-10">
                     <motion.h2
