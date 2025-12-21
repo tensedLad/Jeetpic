@@ -26,7 +26,7 @@ const PromiseSection = () => {
     ];
 
     return (
-        <section id="why-jeetpic" className="pb-20 px-6 md:px-12 relative overflow-hidden">
+        <section className="pb-20 px-6 md:px-12 relative overflow-hidden">
             <div className="max-w-7xl mx-auto relative z-10">
                 <div className="text-center mb-10">
                     <motion.h2
@@ -44,10 +44,10 @@ const PromiseSection = () => {
                     {promises.map((item, index) => (
                         <motion.div
                             key={index}
-                            className="bg-white rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center gap-4 text-gray-800 shadow-lg border border-blue-100"
+                            className="bg-white rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center gap-4 text-gray-800 border-none"
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            whileHover={{ y: -10, scale: 1.02, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+                            whileHover={{ y: -10, scale: 1.02 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1, duration: 0.5 }}
                         >

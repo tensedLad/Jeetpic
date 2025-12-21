@@ -14,7 +14,8 @@ const Hero = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight relative">
-                        India's Toughest Stain <br /> Remover.
+                        Stop paying for their <br /> TV ads. <br />
+                        Start paying for a <br /> cleaner toilet.
                     </h1>
                     <p className="text-blue-100 text-lg md:text-xl max-w-lg">
                         Better Shine, Less Time. The new standard for Indian toilets.
@@ -27,13 +28,14 @@ const Hero = () => {
                         >
                             Become a Distributor
                         </motion.button>
-                        <motion.button
-                            className="bg-white text-black font-semibold py-3 px-6 rounded shadow-lg"
+                        <motion.a
+                            href="#why-jeetpic"
+                            className="bg-white text-gray-900 font-semibold py-3 px-6 rounded shadow-lg inline-block"
                             whileHover={{ scale: 1.05, backgroundColor: '#F3F4F6' }}
                             whileTap={{ scale: 0.95 }}
                         >
                             See the Difference
-                        </motion.button>
+                        </motion.a>
                     </div>
                 </motion.div>
 
@@ -43,15 +45,18 @@ const Hero = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-
-
-                    <motion.img
-                        src={productImg}
-                        alt="Jeetpic Bottle"
-                        className="w-64 md:w-80 lg:w-96 drop-shadow-2xl cursor-pointer"
-                        whileHover={{ scale: 1.1, y: -10 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                    />
+                    <motion.div
+                        animate={{ y: [0, -20, 0] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <motion.img
+                            src={productImg}
+                            alt="Jeetpic Bottle"
+                            className="w-64 md:w-80 lg:w-96 drop-shadow-2xl cursor-pointer"
+                            whileHover={{ scale: 1.1, y: -10 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                        />
+                    </motion.div>
                 </motion.div>
             </div>
         </section >

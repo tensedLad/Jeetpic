@@ -2,15 +2,15 @@ import { Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 const ComparisonTable = () => {
     const stats = [
-        { feature: "Origin", jeetpic: "Indian (Swadeshi)", other: "Foreign MNC", isJeetpicBetter: true },
-        { feature: "Thickness", jeetpic: "Extra Thick", other: "Standard", isJeetpicBetter: true },
-        { feature: "Stain Removal", jeetpic: "2-3 minutes", other: "5-7 minutes", isJeetpicBetter: true },
+        { feature: "Where your money goes", jeetpic: "Stays in India", other: "Foreign MNC", isJeetpicBetter: true },
+        { feature: "Formula Density", jeetpic: "Extra Thick", other: "Standard", isJeetpicBetter: true },
+        { feature: "Scrubbing Effort", jeetpic: "2-3 minutes", other: "5-7 minutes", isJeetpicBetter: true },
         { feature: "Hard Water Action", jeetpic: "Effective Cleaning", other: "Loses Power", isJeetpicBetter: true },
         { feature: "Fragrance", jeetpic: "Long-lasting Fresh", other: "Moderate", isJeetpicBetter: true },
     ];
 
     return (
-        <section className="py-16 px-6 md:px-12 text-center relative overflow-hidden">
+        <section id="why-jeetpic" className="py-16 px-6 md:px-12 text-center relative overflow-hidden scroll-mt-32">
             <div className="max-w-7xl mx-auto relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
@@ -73,8 +73,7 @@ const ComparisonTable = () => {
                         viewport={{ once: true }}
                         transition={{ delay: 0.4 }}
                     >
-                        <h3 className="text-xl font-bold text-gray-900">Better Performance. Lower Price. Maximum Profit.</h3>
-                        <p className="text-gray-600 mt-2">Give your customers what they deserve without breaking their budget.</p>
+                        <h3 className="text-xl font-bold text-gray-900">Better Shine, Less Time. The new standard for Indian toilets.</h3>
 
 
                     </motion.div>
