@@ -18,8 +18,8 @@ const ComparisonTable = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <h2 className="text-3xl font-bold mb-4 drop-shadow-md">See why Jeetpic is the smarter choice</h2>
-                    <p className="text-gray-600 mb-10">Better Performance. Lower Price. Maximum Profit.</p>
+                    <h2 className="text-3xl font-bold mb-4 drop-shadow-md text-white">See why Jeetpic is the smarter choice</h2>
+                    <p className="text-white/80 mb-10">Better Performance. Lower Price. Maximum Profit.</p>
                 </motion.div>
 
                 <motion.div
