@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight, Download, CreditCard } from 'lucide-react';
 import FloatingLemons from './FloatingLemons';
 import { database } from '../firebase';
 import { ref, push, set, query, orderByChild, limitToLast, get } from 'firebase/database';
@@ -29,7 +29,7 @@ const QuickStorePage = () => {
         pincode: ''
     });
 
-    const [loading, setLoading] = useState(false);
+    const [processingMethod, setProcessingMethod] = useState(null);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [orderPlaced, setOrderPlaced] = useState(false);
@@ -56,7 +56,7 @@ const QuickStorePage = () => {
         {
             id: 'jeetpic',
             name: 'Jeetpic Toilet Cleaner',
-            price: 150,
+            price: 1,
             images: [
                 '/jeetpic.png',
                 'https://via.placeholder.com/150x150?text=Jeetpic+Label',
@@ -68,7 +68,7 @@ const QuickStorePage = () => {
         {
             id: 'winyle',
             name: 'Winyle Floor Cleaner',
-            price: 120,
+            price: 1,
             images: [
                 '/winyle.png',
                 'https://via.placeholder.com/150x150?text=Winyle+Label',
@@ -80,7 +80,7 @@ const QuickStorePage = () => {
         {
             id: 'phynyl',
             name: 'Winyle Phynyl',
-            price: 80,
+            price: 1,
             images: [
                 '/phynyl.png',
                 'https://via.placeholder.com/150x150?text=Phynyl+Label',
@@ -92,7 +92,7 @@ const QuickStorePage = () => {
         {
             id: 'combo',
             name: 'Combo Pack (2 Jeetpic + 1 Winyle)',
-            price: 399,
+            price: 1,
             images: [
                 '/combo.png',
                 'https://via.placeholder.com/150x150?text=Combo+Pack+Open',
@@ -132,7 +132,7 @@ const QuickStorePage = () => {
         }, 0);
 
         const gst = subtotal * 0.18;
-        const shipping = subtotal > 299 ? 0 : 40;
+        const shipping = 0; // Test Mode: Free Shipping
         const total = subtotal + gst + shipping;
 
         return { subtotal, gst, shipping, total };
@@ -155,7 +155,7 @@ const QuickStorePage = () => {
     };
 
     const handleSendToWhatsApp = async () => {
-        setLoading(true);
+        setProcessingMethod('whatsapp');
 
         try {
             const orderData = {
@@ -189,7 +189,7 @@ const QuickStorePage = () => {
             const whatsappUrl = `https://wa.me/919830117727?text=${encodeURIComponent(fallbackMessage)}`;
             window.location.href = whatsappUrl;
         } finally {
-            setLoading(false);
+            setProcessingMethod(null);
         }
     };
 
@@ -204,7 +204,7 @@ const QuickStorePage = () => {
             return;
         }
 
-        setLoading(true);
+        setProcessingMethod('cod');
 
         try {
             const orderRef = ref(database, 'orders');
@@ -271,15 +271,143 @@ const QuickStorePage = () => {
             console.error('Order placement failed:', error);
             alert(`Error: ${error.message}. Please try again.`);
         } finally {
-            setLoading(false);
+            setProcessingMethod(null);
         }
+    };
+
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => {
+                resolve(true);
+            };
+            script.onerror = () => {
+                resolve(false);
+            };
+            document.body.appendChild(script);
+        });
+    };
+
+    const handlePrepaidOrder = async () => {
+        if (!details.name || !details.phone || !details.address) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        const res = await loadRazorpay();
+
+        if (!res) {
+            alert('Razorpay SDK failed to load. Are you online?');
+            return;
+        }
+
+        // Calculate discounted amount (10% OFF)
+        const { total } = calculateTotal();
+        const discountAmount = total * 0.10;
+        const amountToPay = total - discountAmount;
+
+        const options = {
+            key: "rzp_live_RukKQgoFRuX0bR", // LIVE Key
+            amount: Math.round(amountToPay * 100), // Amount in paise
+            currency: "INR",
+            name: "Jeetpic Store",
+            description: "Instant 10% Discount Applied",
+            image: "/jeetpic.png", // Ensure this path is correct
+            handler: async function (response) {
+                // Payment Successful
+                // alert("Payment Successful. Payment ID: " + response.razorpay_payment_id);
+
+                // Save Order to Firebase
+                setProcessingMethod('prepaid');
+                try {
+                    const orderRef = ref(database, 'orders');
+
+                    // 1. Fetch last invoice number
+                    let lastInvoiceNumber = null;
+                    const lastOrderQuery = query(orderRef, limitToLast(1));
+                    const snapshot = await get(lastOrderQuery);
+
+                    if (snapshot.exists()) {
+                        const lastOrder = Object.values(snapshot.val())[0];
+                        lastInvoiceNumber = lastOrder.orderNumberFormatted;
+                    }
+
+                    // 2. Generate new invoice number
+                    const newInvoiceNumber = generateInvoiceNumber(lastInvoiceNumber);
+                    const newOrderRef = push(orderRef);
+                    const timestamp = new Date().toISOString();
+
+                    const processedItems = Object.entries(cart)
+                        .filter(([_, qty]) => qty > 0)
+                        .map(([id, qty]) => {
+                            const product = products.find(p => p.id === id);
+                            return {
+                                name: product.name,
+                                quantity: qty,
+                                price: product.price,
+                                total: product.price * qty
+                            };
+                        });
+
+                    const orderData = {
+                        orderId: newOrderRef.key,
+                        orderNumber: newInvoiceNumber,
+                        orderNumberFormatted: newInvoiceNumber,
+                        timestamp: timestamp,
+                        customer: details,
+                        items: cart,
+                        processedItems: processedItems,
+                        totals: calculateTotal(),
+                        status: 'paid', // Mark as PAID
+                        paymentMethod: 'prepaid',
+                        paymentId: response.razorpay_payment_id,
+                        discount: discountAmount,
+                        finalHeading: amountToPay,
+                        device: 'web'
+                    };
+
+                    await set(newOrderRef, orderData);
+
+                    setStoredOrderData(orderData);
+                    setOrderPlaced(true);
+                    generateInvoicePDF(orderData);
+                    localStorage.removeItem('jeetpic_order_data');
+
+                } catch (error) {
+                    console.error('Order placement failed:', error);
+                    alert(`Error processing order: ${error.message}. Please contact support with Payment ID: ${response.razorpay_payment_id}`);
+                } finally {
+                    setProcessingMethod(null);
+                }
+            },
+            prefill: {
+                name: details.name,
+                contact: details.phone
+            },
+            notes: {
+                address: details.address
+            },
+            theme: {
+                color: "#166534" // Green color to match the button
+            }
+        };
+
+        const paymentObject = new window.Razorpay(options);
+
+        paymentObject.on('payment.failed', function (response) {
+            console.error("PAYMENT FAILED:", response.error);
+            alert("Payment Failed. Please try again or choose Cash on Delivery.");
+        });
+
+        paymentObject.open();
     };
 
     const { subtotal, gst, shipping, total } = calculateTotal();
     const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-600 to-white text-white relative">
+        <div className="min-h-screen bg-[#2563EB] text-white relative">
             <FloatingLemons />
             <div className="relative z-10">
                 {orderPlaced ? (
@@ -599,11 +727,36 @@ const QuickStorePage = () => {
                                         </div>
                                     </div>
                                     <button
+                                        onClick={handlePrepaidOrder}
+                                        disabled={processingMethod !== null || totalItems === 0}
+                                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-lg font-bold hover:from-green-700 hover:to-emerald-700 shadow-lg transform transition-all hover:scale-[1.02] mb-4 flex items-center justify-center gap-3 border border-green-400 relative overflow-hidden group"
+                                    >
+                                        <div className="absolute top-0 right-0 bg-yellow-400 text-xs font-bold px-2 py-1 transform translate-x-2 -translate-y-1 rotate-12 shadow-sm text-yellow-900">
+                                            SAVE 10%
+                                        </div>
+                                        {processingMethod === 'prepaid' ? (
+                                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        ) : (
+                                            <CreditCard className="w-6 h-6 animate-pulse" />
+                                        )}
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-lg leading-none">{processingMethod === 'prepaid' ? 'Processing Payment...' : 'GET INSTANT 10% OFF'}</span>
+                                            {processingMethod !== 'prepaid' && <span className="text-xs font-normal opacity-90 mt-1">Prepay ₹{(total * 0.9).toFixed(2)} with Razorpay</span>}
+                                        </div>
+                                    </button>
+
+                                    <div className="relative flex py-2 items-center mb-4">
+                                        <div className="flex-grow border-t border-gray-300"></div>
+                                        <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-medium">OR PAY ON DELIVERY</span>
+                                        <div className="flex-grow border-t border-gray-300"></div>
+                                    </div>
+
+                                    <button
                                         onClick={handlePlaceOrder}
-                                        disabled={loading || totalItems === 0}
+                                        disabled={processingMethod !== null || totalItems === 0}
                                         className="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
-                                        {loading ? (
+                                        {processingMethod === 'cod' ? (
                                             <>
                                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                                 Processing...
