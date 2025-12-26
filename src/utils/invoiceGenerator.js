@@ -43,181 +43,209 @@ export const generateInvoiceNumber = (lastInvoiceNumber) => {
  * @returns {object} The document definition object for pdfmake
  */
 export const getInvoiceDocDefinition = (orderData) => {
-    const { customer, items, totals, orderNumber, timestamp } = orderData;
+    const { customer, items, totals, orderNumberFormatted, timestamp, paymentMethod } = orderData;
+    // Use orderNumberFormatted if available, else fallback to orderNumber
+    const displayOrderNumber = orderNumberFormatted || orderData.orderNumber;
 
     // Helper to format currency
-    const formatCurrency = (amount) => `₹ ${Number(amount).toFixed(2)}`;
+    const formatCurrency = (amount) => `₹${Number(amount).toFixed(2)}`;
 
-    // Helper to format date
+    // Helper to format date with time
     const formatDate = (isoString) => {
-        return new Date(isoString).toLocaleDateString('en-IN', {
+        return new Date(isoString).toLocaleString('en-IN', {
             year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
         });
     };
 
     // Prepare table body
     const tableBody = [
         [
-            { text: 'S.No', style: 'tableHeader' },
-            { text: 'Description', style: 'tableHeader' },
+            { text: 'Product', style: 'tableHeader', alignment: 'left' },
             { text: 'Qty', style: 'tableHeader', alignment: 'center' },
-            { text: 'Rate', style: 'tableHeader', alignment: 'right' },
-            { text: 'Amount', style: 'tableHeader', alignment: 'right' }
+            { text: 'Unit Price', style: 'tableHeader', alignment: 'right' },
+            { text: 'Total', style: 'tableHeader', alignment: 'right' }
         ]
     ];
 
-    let serialNo = 1;
-    Object.entries(items).forEach(([id, qty]) => {
-        if (qty > 0) {
-            // Need products list to get name/price. Since we don't have it passed directly, 
-            // we'll rely on the orderData structure ideally containing item details or we infer it.
-            // For now, let's assume orderData.itemsDetails exists OR we match IDs if we had the products list.
-            // Since `products` array is in the component, we might want to pass formatted items to this function.
-            // BUT, to keep it simple, let's pass the enriched items array to this function instead of raw cart object
-            // For this implementation, I will assume the caller passes an `enrichedItems` array or I'll handle generic text if not found.
-
-            // Wait, I can't access `products` array here easily without importing it or passing it in.
-            // I will update the component to pass an Enriched Items Array.
-        }
-    });
-
-    // NOTE: The Caller must pass `processedItems` array [{name, quantity, price, total}] 
-    // instead of just `items` (cart object) for better separation of concerns.
-
-    // Let's assume orderData.processedItems is available. 
-    // If not, we fall back to a generic placeholder or the caller handles it.
-
     if (orderData.processedItems) {
-        orderData.processedItems.forEach((item, index) => {
+        orderData.processedItems.forEach((item) => {
             tableBody.push([
-                { text: index + 1, style: 'tableBody' },
-                { text: item.name, style: 'tableBody' },
-                { text: item.quantity, style: 'tableBody', alignment: 'center' },
-                { text: formatCurrency(item.price), style: 'tableBody', alignment: 'right' },
-                { text: formatCurrency(item.total), style: 'tableBody', alignment: 'right' }
+                {
+                    stack: [
+                        { text: item.name, style: 'itemName' },
+                        { text: item.specs || '', style: 'itemSpecs' }
+                    ],
+                    margin: [0, 5, 0, 5]
+                },
+                { text: item.quantity, style: 'itemRow', alignment: 'center', margin: [0, 10, 0, 0] },
+                { text: formatCurrency(item.price), style: 'itemRow', alignment: 'right', margin: [0, 10, 0, 0] },
+                { text: formatCurrency(item.total), style: 'itemRow', alignment: 'right', font: 'Roboto', bold: true, margin: [0, 10, 0, 0] }
             ]);
         });
     }
 
     return {
         content: [
-            // Header
+            // Title
+            {
+                text: 'Order Invoice',
+                style: 'pageTitle',
+                alignment: 'center',
+                margin: [0, 0, 0, 30]
+            },
+
+            // Header Meta (Jeetpic Order | Date)
             {
                 columns: [
                     {
                         width: '*',
                         stack: [
-                            { text: 'INVOICE', style: 'headerTitle' },
-                            { text: 'Jeetpic Industries', style: 'companyName' },
-                            { text: '123, Industrial Area, Kolkata, WB - 700001', style: 'companyAddress' },
-                            { text: 'Email: support@jeetpic.com | Phone: +91 9830117727', style: 'companyAddress' }
+                            { text: 'Jeetpic Order', style: 'sectionHeader' },
+                            { text: `Order #${displayOrderNumber}`, style: 'metaText' }
                         ]
                     },
                     {
                         width: 'auto',
                         stack: [
-                            { text: `Invoice No: ${orderNumber}`, style: 'metaText', alignment: 'right' },
-                            { text: `Date: ${formatDate(timestamp)}`, style: 'metaText', alignment: 'right' }
+                            { text: `Date: ${formatDate(timestamp)}`, style: 'metaText', alignment: 'right' },
+                            { text: `Payment: ${paymentMethod === 'prepaid' ? 'Online Payment' : 'Cash on Delivery'}`, style: 'metaText', alignment: 'right' }
                         ]
                     }
-                ]
+                ],
+                margin: [0, 0, 0, 20]
             },
 
-            { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1 }] },
-
-            // Bill To
+            // Delivery Details Box
             {
-                margin: [0, 20, 0, 20],
-                columns: [
-                    {
-                        width: '*',
-                        stack: [
-                            { text: 'Bill To:', style: 'sectionLabel' },
-                            { text: customer.name, style: 'customerName' },
-                            { text: customer.address, style: 'customerAddress' },
-                            { text: customer.pincode ? `Pincode: ${customer.pincode}` : '', style: 'customerAddress' },
-                            { text: `Phone: ${customer.phone}`, style: 'customerAddress' }
+                table: {
+                    widths: ['*'],
+                    body: [
+                        [
+                            {
+                                stack: [
+                                    { text: 'Delivery Details', style: 'boxHeader' },
+                                    { text: `Name: ${customer.name}`, style: 'boxText' },
+                                    { text: `Phone: ${customer.phone}`, style: 'boxText' },
+                                    { text: `Address: ${customer.address}`, style: 'boxText' },
+                                    { text: `Pincode: ${customer.pincode}`, style: 'boxText' }
+                                ],
+                                fillColor: '#F9FAFB',
+                                border: [false, false, false, false],
+                                margin: [10, 10, 10, 10]
+                            }
                         ]
-                    }
-                ]
+                    ]
+                },
+                layout: 'noBorders',
+                margin: [0, 0, 0, 20]
             },
+
+            // Items Header (Items Ordered)
+            { text: 'Items Ordered', style: 'sectionHeader', margin: [0, 0, 0, 10] },
 
             // Items Table
             {
                 table: {
                     headerRows: 1,
-                    widths: [30, '*', 40, 80, 80],
+                    widths: ['*', 50, 80, 80],
                     body: tableBody
                 },
-                layout: 'lightHorizontalLines',
+                layout: {
+                    hLineWidth: function (i, node) {
+                        return (i === 0 || i === node.table.body.length) ? 0 : 1;
+                    },
+                    vLineWidth: function (i, node) {
+                        return 0;
+                    },
+                    hLineColor: function (i, node) {
+                        return '#E5E7EB';
+                    },
+                    fillColor: function (rowIndex, node, columnIndex) {
+                        return (rowIndex === 0) ? '#F9FAFB' : null;
+                    },
+                    paddingLeft: function (i) { return 8; },
+                    paddingRight: function (i) { return 8; },
+                    paddingTop: function (i) { return 8; },
+                    paddingBottom: function (i) { return 8; }
+                },
                 margin: [0, 0, 0, 20]
             },
 
-            // Summary
+            // Totals Section
             {
-                columns: [
-                    { width: '*', text: '' }, // Spacer
-                    {
-                        width: 200,
-                        table: {
-                            widths: ['*', 80],
-                            body: [
-                                [
-                                    { text: 'Subtotal:', style: 'summaryLabel' },
-                                    { text: formatCurrency(totals.subtotal), style: 'summaryValue' }
-                                ],
-                                [
-                                    { text: 'Tax (0%):', style: 'summaryLabel' },
-                                    { text: formatCurrency(0), style: 'summaryValue' }
-                                ],
-                                [
-                                    { text: 'Shipping:', style: 'summaryLabel' },
-                                    { text: totals.shipping === 0 ? 'FREE' : formatCurrency(totals.shipping), style: 'summaryValue' }
-                                ],
-                                [
-                                    { text: 'Total:', style: 'totalLabel' },
-                                    { text: formatCurrency(totals.total), style: 'totalValue' }
-                                ]
-                            ]
-                        },
-                        layout: 'noBorders'
-                    }
-                ]
+                table: {
+                    widths: ['*', 100],
+                    body: [
+                        [
+                            { text: `Subtotal (${Object.values(items).reduce((a, b) => a + b, 0)} items):`, style: 'totalLabel' },
+                            { text: formatCurrency(totals.subtotal), style: 'totalValue' }
+                        ],
+                        [
+                            { text: 'GST (18%):', style: 'totalLabel' },
+                            { text: formatCurrency(totals.gst), style: 'totalValue' }
+                        ],
+                        [
+                            { text: 'Shipping:', style: 'totalLabel' },
+                            { text: totals.shipping === 0 ? 'FREE' : formatCurrency(totals.shipping), style: 'totalValue', color: totals.shipping === 0 ? '#16A34A' : 'black' }
+                        ]
+                    ]
+                },
+                layout: 'noBorders',
+                margin: [0, 0, 0, 10]
             },
 
-            // Footer
+            // Divider Line
+            { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' }], margin: [0, 0, 0, 10] },
+
+            // Final Total
             {
-                text: 'Thank you for your business!',
-                style: 'footerText',
-                alignment: 'center',
-                margin: [0, 50, 0, 0]
+                table: {
+                    widths: ['*', 120],
+                    body: [
+                        [
+                            { text: 'Total Amount:', style: 'grandTotalLabel' },
+                            { text: formatCurrency(totals.total), style: 'grandTotalValue' }
+                        ]
+                    ]
+                },
+                layout: 'noBorders'
             },
+
+            // Footer/Disclaimer (Optional, kept minimal to match screen)
             {
-                text: 'This is a computer-generated invoice and does not require a signature.',
+                text: 'This is a computer-generated invoice.',
                 style: 'disclaimerText',
                 alignment: 'center',
-                margin: [0, 5, 0, 0]
+                margin: [0, 40, 0, 0]
             }
+
         ],
 
         styles: {
-            headerTitle: { fontSize: 22, bold: true, margin: [0, 0, 0, 5] },
-            companyName: { fontSize: 12, bold: true },
-            companyAddress: { fontSize: 10, color: '#555' },
-            metaText: { fontSize: 10, bold: true, margin: [0, 2, 0, 2] },
-            sectionLabel: { fontSize: 10, bold: true, color: '#555', margin: [0, 0, 0, 2] },
-            customerName: { fontSize: 11, bold: true },
-            customerAddress: { fontSize: 10 },
-            tableHeader: { fontSize: 10, bold: true, color: 'black', fillColor: '#eeeeee', margin: [0, 5, 0, 5] },
-            tableBody: { fontSize: 10, margin: [0, 5, 0, 5] },
-            summaryLabel: { fontSize: 10, alignment: 'right', margin: [0, 2, 0, 2] },
-            summaryValue: { fontSize: 10, alignment: 'right', margin: [0, 2, 0, 2] },
-            totalLabel: { fontSize: 12, bold: true, alignment: 'right', margin: [0, 5, 0, 5] },
-            totalValue: { fontSize: 12, bold: true, alignment: 'right', margin: [0, 5, 0, 5] },
-            footerText: { fontSize: 12, bold: true, color: '#333' },
-            disclaimerText: { fontSize: 8, color: '#777' }
+            pageTitle: { fontSize: 18, bold: true, color: '#111827' },
+            sectionHeader: { fontSize: 14, bold: true, color: '#111827', margin: [0, 0, 0, 2] },
+            metaText: { fontSize: 9, color: '#4B5563', margin: [0, 1, 0, 1] },
+
+            boxHeader: { fontSize: 11, bold: true, color: '#111827', margin: [0, 0, 0, 4] },
+            boxText: { fontSize: 10, color: '#374151', margin: [0, 1, 0, 1] },
+
+            tableHeader: { fontSize: 10, bold: true, color: '#374151' },
+            itemName: { fontSize: 10, bold: true, color: '#111827' },
+            itemSpecs: { fontSize: 8, color: '#6B7280' },
+            itemRow: { fontSize: 10, color: '#111827' },
+
+            totalLabel: { fontSize: 10, color: '#374151', alignment: 'left' },
+            totalValue: { fontSize: 10, color: '#111827', alignment: 'right', bold: true },
+
+            grandTotalLabel: { fontSize: 12, bold: true, color: '#111827', alignment: 'left' },
+            grandTotalValue: { fontSize: 14, bold: true, color: '#DC2626', alignment: 'right' },
+
+            disclaimerText: { fontSize: 8, color: '#9CA3AF' }
         },
         defaultStyle: {
             font: 'Roboto'

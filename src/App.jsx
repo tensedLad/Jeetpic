@@ -7,6 +7,11 @@ import PartnerForm from './components/PartnerForm'
 import Footer from './components/Footer'
 import FloatingLemons from './components/FloatingLemons'
 import QuickStorePage from './components/QuickStorePage'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import TermsAndConditions from './components/TermsAndConditions'
+import RefundPolicy from './components/RefundPolicy'
+import ShippingPolicy from './components/ShippingPolicy'
+import ContactUs from './components/ContactUs'
 import { Routes, Route } from 'react-router-dom'
 
 function App() {
@@ -32,9 +37,15 @@ function App() {
           </>
         } />
         <Route path="/shop" element={<QuickStorePage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
       </Routes>
     </div>
   )
 }
 
 export default App
+

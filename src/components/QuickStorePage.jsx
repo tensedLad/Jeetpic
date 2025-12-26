@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight, Download, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Minus, ShoppingCart, X, ChevronLeft, ChevronRight, Download, CreditCard, User, Phone, MapPin, Hash, ShoppingBag, Truck, ClipboardCheck } from 'lucide-react';
 import FloatingLemons from './FloatingLemons';
 import { database } from '../firebase';
 import { ref, push, set, query, orderByChild, limitToLast, get } from 'firebase/database';
@@ -8,6 +9,7 @@ import pdfMake from "pdfmake/build/pdfmake";
 import { generateInvoiceNumber, getInvoiceDocDefinition } from '../utils/invoiceGenerator';
 
 const QuickStorePage = () => {
+    const navigate = useNavigate();
     const [cart, setCart] = useState({
         jeetpic: 0,
         winyle: 0,
@@ -57,6 +59,7 @@ const QuickStorePage = () => {
             id: 'jeetpic',
             name: 'Jeetpic Toilet Cleaner',
             price: 1,
+            mrp: 9,
             images: [
                 '/jeetpic.png',
                 'https://via.placeholder.com/150x150?text=Jeetpic+Label',
@@ -69,6 +72,7 @@ const QuickStorePage = () => {
             id: 'winyle',
             name: 'Winyle Floor Cleaner',
             price: 1,
+            mrp: 9,
             images: [
                 '/winyle.png',
                 'https://via.placeholder.com/150x150?text=Winyle+Label',
@@ -81,6 +85,7 @@ const QuickStorePage = () => {
             id: 'phynyl',
             name: 'Winyle Phynyl',
             price: 1,
+            mrp: 9,
             images: [
                 '/phynyl.png',
                 'https://via.placeholder.com/150x150?text=Phynyl+Label',
@@ -93,6 +98,7 @@ const QuickStorePage = () => {
             id: 'combo',
             name: 'Combo Pack (2 Jeetpic + 1 Winyle)',
             price: 1,
+            mrp: 27,
             images: [
                 '/combo.png',
                 'https://via.placeholder.com/150x150?text=Combo+Pack+Open',
@@ -143,7 +149,7 @@ const QuickStorePage = () => {
             alert('Please select at least one product');
             return;
         }
-        if (currentStep === 2 && (!details.name || !details.phone || !details.address)) {
+        if (currentStep === 2 && (!details.name || !details.phone || !details.address || !details.pincode)) {
             alert('Please fill in all required delivery details');
             return;
         }
@@ -151,7 +157,11 @@ const QuickStorePage = () => {
     };
 
     const prevStep = () => {
-        setCurrentStep(prev => Math.max(1, prev - 1));
+        if (currentStep === 1) {
+            navigate('/');
+        } else {
+            setCurrentStep(prev => Math.max(1, prev - 1));
+        }
     };
 
     const handleSendToWhatsApp = async () => {
@@ -179,14 +189,14 @@ const QuickStorePage = () => {
             } else {
                 // Fallback
                 const fallbackMessage = `*NEW ORDER* 🚀\n------------------\n*Name:* ${details.name}\n*Location:* ${details.address} (${details.pincode})\n------------------\n*Items:*\n${Object.entries(cart).filter(([_, qty]) => qty > 0).map(([id, qty]) => `• ${products.find(p => p.id === id).name} x ${qty}`).join('\n')}\n------------------\n*Total to Pay: ₹${calculateTotal().total}* (COD)`;
-                const whatsappUrl = `https://wa.me/919830117727?text=${encodeURIComponent(fallbackMessage)}`;
+                const whatsappUrl = `https://wa.me/918100246362?text=${encodeURIComponent(fallbackMessage)}`;
                 window.location.href = whatsappUrl;
             }
         } catch (error) {
             console.error('Order placement failed:', error);
             // Fallback to WhatsApp
             const fallbackMessage = `*NEW ORDER* 🚀\n------------------\n*Name:* ${details.name}\n*Location:* ${details.address} (${details.pincode})\n------------------\n*Items:*\n${Object.entries(cart).filter(([_, qty]) => qty > 0).map(([id, qty]) => `• ${products.find(p => p.id === id).name} x ${qty}`).join('\n')}\n------------------\n*Total to Pay: ₹${calculateTotal().total}* (COD)`;
-            const whatsappUrl = `https://wa.me/919830117727?text=${encodeURIComponent(fallbackMessage)}`;
+            const whatsappUrl = `https://wa.me/918100246362?text=${encodeURIComponent(fallbackMessage)}`;
             window.location.href = whatsappUrl;
         } finally {
             setProcessingMethod(null);
@@ -199,7 +209,7 @@ const QuickStorePage = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!details.name || !details.phone || !details.address) {
+        if (!details.name || !details.phone || !details.address || !details.pincode) {
             alert('Please fill in all required fields');
             return;
         }
@@ -290,7 +300,7 @@ const QuickStorePage = () => {
     };
 
     const handlePrepaidOrder = async () => {
-        if (!details.name || !details.phone || !details.address) {
+        if (!details.name || !details.phone || !details.address || !details.pincode) {
             alert('Please fill in all required fields');
             return;
         }
@@ -407,13 +417,13 @@ const QuickStorePage = () => {
     const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
     return (
-        <div className="min-h-screen bg-[#2563EB] text-white relative">
+        <div className="h-screen overflow-hidden bg-[#2563EB] text-white relative flex flex-col">
             <FloatingLemons />
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col h-full overflow-hidden">
                 {orderPlaced ? (
                     /* Order Confirmation Page - Only show invoice */
-                    <div className="max-w-4xl mx-auto p-6">
-                        <div className="bg-white text-gray-900 rounded-lg shadow-md p-6">
+                    <div className="max-w-4xl mx-auto p-6 w-full flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                        <div className="bg-white text-gray-900 rounded-lg shadow-md p-6 mb-4">
                             <div className="text-center mb-6">
                                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -434,7 +444,7 @@ const QuickStorePage = () => {
                                         <p className="text-sm text-gray-600">Order #{storedOrderData ? storedOrderData.orderNumber : Date.now()}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-gray-600">Date: {storedOrderData ? new Date(storedOrderData.timestamp).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+                                        <p className="text-sm text-gray-600">Date: {storedOrderData ? new Date(storedOrderData.timestamp).toLocaleString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : new Date().toLocaleString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
                                         <p className="text-sm text-gray-600">Payment: Cash on Delivery</p>
                                     </div>
                                 </div>
@@ -511,17 +521,13 @@ const QuickStorePage = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 text-center">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                                    <p className="text-green-800 font-medium">✅ Your order has been successfully placed!</p>
-                                    <p className="text-green-600 text-sm mt-1">Your invoice has been downloaded automatically.</p>
-                                </div>
+                            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <button
                                     onClick={() => generateInvoicePDF(storedOrderData)}
-                                    className="bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-900 flex items-center justify-center gap-2 mx-auto mb-4"
+                                    className="bg-white text-blue-600 py-3 px-6 rounded-xl font-bold hover:bg-gray-100 flex items-center justify-center gap-2 shadow-lg border border-blue-100 transition-all active:scale-95 w-full sm:w-auto"
                                 >
                                     <Download className="w-5 h-5" />
-                                    Download Invoice Again
+                                    Download Invoice
                                 </button>
                                 <button
                                     onClick={() => {
@@ -542,7 +548,7 @@ const QuickStorePage = () => {
                                         setOrderPlaced(false);
                                         setStoredOrderData(null);
                                     }}
-                                    className="bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 mx-auto"
+                                    className="bg-white text-green-600 py-3 px-6 rounded-xl font-bold hover:bg-gray-100 flex items-center justify-center gap-2 shadow-lg border border-green-100 transition-all active:scale-95 w-full sm:w-auto"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -556,234 +562,285 @@ const QuickStorePage = () => {
                     /* Full Shop Interface */
                     <>
                         {/* Header */}
-                        <div className="bg-[#B91C1C] text-white p-6">
+                        <div className="bg-[#B91C1C] text-white p-5 flex-shrink-0">
                             <div className="max-w-4xl mx-auto flex items-center justify-between">
                                 <h1 className="text-3xl font-bold">Shop Jeetpic</h1>
                                 <div className="text-center">
                                     <p className="text-lg font-semibold">100% Swadeshi</p>
                                 </div>
                                 <motion.button
-                                    className="bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-lg flex items-center gap-2 border border-white"
-                                    whileHover={{ scale: 1.05, backgroundColor: '#991B1B' }}
+                                    className="bg-white text-blue-600 font-bold py-1.5 px-4 rounded-lg shadow-lg flex items-center gap-2"
+                                    whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <ShoppingCart className="w-5 h-5" />
-                                    <span className="text-sm">{totalItems} items</span>
+                                    <ShoppingCart className="w-4 h-4" />
+                                    <span className="text-xs uppercase tracking-wider">{totalItems} Items</span>
                                 </motion.button>
                             </div>
                         </div>
 
-                        <div className="max-w-4xl mx-auto p-6">
+                        <div className="max-w-4xl mx-auto flex-1 flex flex-col overflow-hidden w-full p-4">
                             {/* Step Indicator */}
-                            <div className="flex justify-center mb-8">
+                            <div className="flex justify-center mb-6 flex-shrink-0">
                                 <div className="flex items-center space-x-4">
-                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${currentStep >= 1 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-300'}`}>
+                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-lg ${currentStep >= 1 ? 'border-white bg-white text-blue-600' : 'border-white/30 text-white/70'}`}>
                                         1
                                     </div>
-                                    <div className={`w-12 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${currentStep >= 2 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-300'}`}>
+                                    <div className={`w-10 h-0.5 ${currentStep >= 2 ? 'bg-white' : 'bg-white/30'}`}></div>
+                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-lg ${currentStep >= 2 ? 'border-white bg-white text-blue-600' : 'border-white/30 text-white/70'}`}>
                                         2
                                     </div>
-                                    <div className={`w-12 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${currentStep >= 3 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-300'}`}>
+                                    <div className={`w-10 h-0.5 ${currentStep >= 3 ? 'bg-white' : 'bg-white/30'}`}></div>
+                                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-lg ${currentStep >= 3 ? 'border-white bg-white text-blue-600' : 'border-white/30 text-white/70'}`}>
                                         3
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-center mb-6">
-                                <h2 className="text-xl font-semibold">
-                                    {currentStep === 1 && 'Select Products'}
-                                    {currentStep === 2 && 'Delivery Details'}
+                            <div className="text-center mb-5 flex-shrink-0">
+                                <h2 className="text-xl font-bold">
                                     {currentStep === 3 && 'Review Order'}
                                 </h2>
                             </div>
                             {currentStep === 1 && (
-                                <div className="space-y-4 mb-8">
-                                    {products.map((product) => (
-                                        <motion.div
-                                            key={product.id}
-                                            className="bg-white text-gray-900 rounded-lg border border-gray-100 shadow-md p-6 flex items-center gap-6 cursor-pointer"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                            whileHover={{
-                                                scale: 1.005,
-                                                y: -1,
-                                                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                                backgroundColor: 'rgba(249, 250, 251, 0.8)'
-                                            }}
-                                            whileTap={{ scale: 0.995 }}
-                                            onClick={() => {
-                                                setSelectedProduct(product);
-                                                // Reset to first image when opening detail
-                                                setCurrentImageIndex(prev => ({ ...prev, [product.id]: 0 }));
-                                            }}
-                                        >
-                                            <div className="flex-shrink-0">
-                                                <img
-                                                    src={product.images[0]}
-                                                    alt={product.name}
-                                                    className="w-24 h-24 object-cover rounded-xl bg-gray-100"
-                                                    onError={(e) => e.target.src = `https://via.placeholder.com/150x150?text=${product.name}`}
-                                                />
+                                <div className="space-y-3 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="bg-white rounded-3xl shadow-xl p-4">
+                                        <div className="flex flex-col items-center justify-center mb-4">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                                                <ShoppingBag className="w-5 h-5 text-blue-600" />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-lg text-slate-800 mb-1">{product.name}</h3>
-                                                <p className="text-gray-500 text-sm mb-2">{product.specs}</p>
-                                                <p className="text-red-600 font-bold text-xl">₹{product.price}</p>
-                                                {product.bestseller && (
-                                                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded mt-2 inline-block">Best Seller</span>
-                                                )}
-                                            </div>
-                                            <div className="flex-shrink-0">
-                                                <div className="flex items-center bg-gray-100 rounded-full p-1">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            updateQuantity(product.id, -1);
-                                                        }}
-                                                        className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
-                                                    >
-                                                        <Minus className="w-4 h-4 text-gray-600" />
-                                                    </button>
-                                                    <span className="mx-3 font-bold text-gray-800 min-w-[2rem] text-center">{cart[product.id]}</span>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            updateQuantity(product.id, 1);
-                                                        }}
-                                                        className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
-                                                    >
-                                                        <Plus className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                            <h2 className="text-xl font-bold text-gray-800">Select Products</h2>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {products.map((product) => (
+                                                <motion.div
+                                                    layout
+                                                    key={product.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    onClick={() => {
+                                                        setSelectedProduct(product);
+                                                        // Reset to first image when opening detail
+                                                        setCurrentImageIndex(prev => ({ ...prev, [product.id]: 0 }));
+                                                    }}
+                                                    className="bg-slate-50 rounded-xl p-3 flex items-center gap-3 cursor-pointer relative overflow-hidden group hover:bg-slate-100 transition-colors border border-slate-100"
+                                                >
+                                                    <div className="w-14 h-14 bg-white rounded-lg flex-shrink-0 p-1.5 border border-slate-200">
+                                                        <img
+                                                            src={product.images[0]}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => e.target.src = `https://via.placeholder.com/150x150?text=${product.name}`}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-bold text-base text-slate-800 mb-0.5 leading-tight">{product.name}</h3>
+                                                        <p className="text-gray-500 text-xs mb-0.5">{product.specs}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            {product.mrp > product.price && (
+                                                                <span className="text-gray-400 text-xs line-through">₹{product.mrp}</span>
+                                                            )}
+                                                            <p className="text-red-600 font-bold text-lg">₹{product.price}</p>
+                                                        </div>
+                                                        {product.bestseller && (
+                                                            <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded mt-0.5 inline-block uppercase tracking-wider font-bold">Best Seller</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-shrink-0">
+                                                        <div className="flex items-center justify-between bg-white rounded-full p-1 w-20 border border-slate-200 shadow-sm">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    updateQuantity(product.id, -1);
+                                                                }}
+                                                                className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                                            >
+                                                                <Minus className="w-3 h-3 text-gray-600" />
+                                                            </button>
+                                                            <span className="font-bold text-gray-800 text-sm">{cart[product.id]}</span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    updateQuantity(product.id, 1);
+                                                                }}
+                                                                className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
                             {/* Customer Details */}
                             {currentStep === 2 && (
-                                <div className="bg-white text-gray-900 rounded-lg shadow-md p-6 mb-8">
-                                    <h2 className="text-xl font-semibold mb-4">Delivery Details</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input
-                                            type="text"
-                                            placeholder="Full Name *"
-                                            value={details.name}
-                                            onChange={(e) => setDetails(prev => ({ ...prev, name: e.target.value }))}
-                                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            required
-                                        />
-                                        <input
-                                            type="tel"
-                                            placeholder="Phone Number *"
-                                            value={details.phone}
-                                            onChange={(e) => setDetails(prev => ({ ...prev, phone: e.target.value }))}
-                                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            required
-                                        />
-                                        <textarea
-                                            placeholder="Full Address *"
-                                            value={details.address}
-                                            onChange={(e) => setDetails(prev => ({ ...prev, address: e.target.value }))}
-                                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
-                                            rows="3"
-                                            required
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Pincode"
-                                            value={details.pincode}
-                                            onChange={(e) => setDetails(prev => ({ ...prev, pincode: e.target.value }))}
-                                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="bg-white text-gray-900 rounded-3xl shadow-xl p-6 mb-4">
+                                        <div className="flex flex-col items-center justify-center mb-8">
+                                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+                                                <Truck className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-gray-800">Delivery Details</h2>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {/* Name Input */}
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <User className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Full Name *"
+                                                    value={details.name}
+                                                    onChange={(e) => setDetails(prev => ({ ...prev, name: e.target.value }))}
+                                                    className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
+                                                    required
+                                                />
+                                            </div>
+
+                                            {/* Phone Input */}
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Phone className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="tel"
+                                                    placeholder="Phone Number *"
+                                                    value={details.phone}
+                                                    onChange={(e) => setDetails(prev => ({ ...prev, phone: e.target.value }))}
+                                                    className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
+                                                    required
+                                                />
+                                            </div>
+
+                                            {/* Address Input */}
+                                            <div className="relative group">
+                                                <div className="absolute top-3.5 left-4 pointer-events-none">
+                                                    <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                                </div>
+                                                <textarea
+                                                    placeholder="Full Address (House No, Building, Street) *"
+                                                    value={details.address}
+                                                    onChange={(e) => setDetails(prev => ({ ...prev, address: e.target.value }))}
+                                                    className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm min-h-[100px] resize-none"
+                                                    required
+                                                />
+                                            </div>
+
+                                            {/* Pincode Input */}
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Hash className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Pincode / Zip Code *"
+                                                    value={details.pincode}
+                                                    onChange={(e) => setDetails(prev => ({ ...prev, pincode: e.target.value }))}
+                                                    className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
                             {/* Order Summary */}
                             {currentStep === 3 && (
-                                <div className="bg-white text-gray-900 rounded-lg shadow-md p-6">
-                                    <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                                    <div className="space-y-2 mb-4">
-                                        <div className="flex justify-between">
-                                            <span>Subtotal:</span>
-                                            <span>₹{subtotal.toFixed(2)}</span>
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="bg-white text-gray-900 rounded-3xl shadow-xl p-6 mb-4">
+                                        <div className="flex flex-col items-center justify-center mb-8">
+                                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+                                                <ClipboardCheck className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-gray-800">Order Summary</h2>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span>GST (18%):</span>
-                                            <span>₹{gst.toFixed(2)}</span>
+                                        <div className="space-y-3 mb-6">
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span className="font-medium">Subtotal:</span>
+                                                <span className="font-bold text-gray-800">₹{subtotal.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span className="font-medium">GST (18%):</span>
+                                                <span className="font-bold text-gray-800">₹{gst.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span className="font-medium">Shipping:</span>
+                                                <span className={`font-bold ${shipping === 0 ? 'text-green-600' : 'text-gray-800'}`}>
+                                                    {shipping === 0 ? 'FREE' : `₹${shipping}`}
+                                                </span>
+                                            </div>
+                                            <div className="border-t border-dashed border-gray-300 my-4"></div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-black text-xl text-gray-900">Total:</span>
+                                                <span className="font-black text-2xl text-blue-600">₹{total.toFixed(2)}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span>Shipping:</span>
-                                            <span>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
-                                        </div>
-                                        <hr className="my-2" />
-                                        <div className="flex justify-between font-bold text-lg">
-                                            <span>Total:</span>
-                                            <span>₹{total.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handlePrepaidOrder}
-                                        disabled={processingMethod !== null || totalItems === 0}
-                                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-lg font-bold hover:from-green-700 hover:to-emerald-700 shadow-lg transform transition-all hover:scale-[1.02] mb-4 flex items-center justify-center gap-3 border border-green-400 relative overflow-hidden group"
-                                    >
-                                        <div className="absolute top-0 right-0 bg-yellow-400 text-xs font-bold px-2 py-1 transform translate-x-2 -translate-y-1 rotate-12 shadow-sm text-yellow-900">
-                                            SAVE 10%
-                                        </div>
-                                        {processingMethod === 'prepaid' ? (
-                                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <CreditCard className="w-6 h-6 animate-pulse" />
-                                        )}
-                                        <div className="flex flex-col items-start">
-                                            <span className="text-lg leading-none">{processingMethod === 'prepaid' ? 'Processing Payment...' : 'GET INSTANT 10% OFF'}</span>
-                                            {processingMethod !== 'prepaid' && <span className="text-xs font-normal opacity-90 mt-1">Prepay ₹{(total * 0.9).toFixed(2)} with Razorpay</span>}
-                                        </div>
-                                    </button>
+                                        <button
+                                            onClick={handlePrepaidOrder}
+                                            disabled={processingMethod !== null || totalItems === 0}
+                                            className="w-full bg-white text-blue-600 py-4 px-6 rounded-xl font-bold hover:bg-gray-100 shadow-xl transform transition-all active:scale-95 mb-4 flex items-center justify-center gap-3 border-2 border-green-500 relative overflow-hidden group"
+                                        >
+                                            <div className="absolute top-0 right-0 bg-yellow-400 text-[10px] font-black px-2 py-0.5 transform translate-x-2 -translate-y-1 rotate-12 shadow-sm text-blue-900 uppercase">
+                                                SAVE 10%
+                                            </div>
+                                            {processingMethod === 'prepaid' ? (
+                                                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <CreditCard className="w-6 h-6 text-green-600 animate-pulse" />
+                                            )}
+                                            <div className="flex flex-col items-center">
+                                                <span className="text-lg leading-none uppercase tracking-tight">{processingMethod === 'prepaid' ? 'Processing...' : 'Online Payment (10% OFF)'}</span>
+                                                {processingMethod !== 'prepaid' && <span className="text-xs font-semibold text-green-600 mt-1">Pay ₹{(total * 0.9).toFixed(2)} with Discount</span>}
+                                            </div>
+                                        </button>
 
-                                    <div className="relative flex py-2 items-center mb-4">
-                                        <div className="flex-grow border-t border-gray-300"></div>
-                                        <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-medium">OR PAY ON DELIVERY</span>
-                                        <div className="flex-grow border-t border-gray-300"></div>
-                                    </div>
+                                        <div className="relative flex py-2 items-center mb-4">
+                                            <div className="flex-grow border-t border-gray-300"></div>
+                                            <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-medium">OR PAY ON DELIVERY</span>
+                                            <div className="flex-grow border-t border-gray-300"></div>
+                                        </div>
 
-                                    <button
-                                        onClick={handlePlaceOrder}
-                                        disabled={processingMethod !== null || totalItems === 0}
-                                        className="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {processingMethod === 'cod' ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ShoppingCart className="w-5 h-5" />
-                                                Place Order
-                                            </>
-                                        )}
-                                    </button>
+                                        <button
+                                            onClick={handlePlaceOrder}
+                                            disabled={processingMethod !== null || totalItems === 0}
+                                            className="w-full bg-white text-blue-600 py-3.5 px-6 rounded-xl font-bold hover:bg-gray-100 shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-95 border border-blue-100"
+                                        >
+                                            {processingMethod === 'cod' ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ShoppingCart className="w-5 h-5 text-red-600" />
+                                                    <span className="uppercase tracking-wide">Cash on Delivery</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
                             {/* Navigation Buttons */}
-                            <div className="flex justify-between mt-8">
+                            <div className="flex justify-between mt-auto pt-4 pb-2 flex-shrink-0">
                                 <button
                                     onClick={prevStep}
-                                    disabled={currentStep === 1}
-                                    className="bg-gray-500 text-white py-2 px-6 rounded-lg font-semibold hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    className="bg-white text-blue-600 py-3 px-10 rounded-xl font-bold hover:bg-gray-100 text-base transition-all shadow-lg active:scale-95 uppercase tracking-wide"
                                 >
                                     Back
                                 </button>
                                 {currentStep < 3 ? (
                                     <button
                                         onClick={nextStep}
-                                        className="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700"
+                                        className="bg-white text-blue-600 py-3 px-12 rounded-xl font-bold hover:bg-gray-100 shadow-xl transform transition-all active:scale-95 text-base uppercase tracking-wide"
                                     >
                                         Next
                                     </button>
@@ -810,19 +867,18 @@ const QuickStorePage = () => {
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Close Button */}
-                            <button
-                                onClick={() => setSelectedProduct(null)}
-                                className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
+
 
                             {/* Left Side - Image with Slider */}
-                            <div className="md:w-1/2 h-64 md:h-auto bg-gray-100 relative">
-                                <img
+                            <div className="md:w-1/2 h-72 md:h-auto bg-gradient-to-br from-gray-50 to-gray-200 relative p-8 flex items-center justify-center group">
+                                <motion.img
+                                    key={currentImageIndex[selectedProduct.id]}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3 }}
                                     src={selectedProduct.images[currentImageIndex[selectedProduct.id]]}
                                     alt={selectedProduct.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain drop-shadow-xl"
                                     onError={(e) => e.target.src = `https://via.placeholder.com/600x600?text=${selectedProduct.name}`}
                                 />
 
@@ -831,13 +887,13 @@ const QuickStorePage = () => {
                                     <>
                                         <button
                                             onClick={() => navigateImage(selectedProduct.id, 'prev')}
-                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => navigateImage(selectedProduct.id, 'next')}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center transition-all shadow-md opacity-0 group-hover:opacity-100"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
@@ -848,9 +904,9 @@ const QuickStorePage = () => {
                                                 <button
                                                     key={index}
                                                     onClick={() => setCurrentImageIndex(prev => ({ ...prev, [selectedProduct.id]: index }))}
-                                                    className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex[selectedProduct.id]
-                                                        ? 'bg-white'
-                                                        : 'bg-white/50 hover:bg-white/70'
+                                                    className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex[selectedProduct.id]
+                                                        ? 'bg-blue-600 w-4'
+                                                        : 'bg-gray-400 hover:bg-gray-600'
                                                         }`}
                                                 />
                                             ))}
@@ -860,35 +916,55 @@ const QuickStorePage = () => {
                             </div>
 
                             {/* Right Side - Details */}
-                            <div className="md:w-1/2 p-8 flex flex-col">
-                                <div className="flex-1">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedProduct.name}</h2>
-                                    <p className="text-gray-600 text-sm mb-4">{selectedProduct.specs}</p>
-                                    <p className="text-gray-700 mb-6 leading-relaxed">
-                                        {selectedProduct.description}. Experience the power of premium cleaning with our specially formulated products that deliver exceptional results every time.
-                                    </p>
-                                    <div className="text-3xl font-bold text-red-600 mb-4">₹{selectedProduct.price}</div>
-                                    {selectedProduct.bestseller && (
-                                        <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full">Best Seller</span>
-                                    )}
+                            <div className="md:w-1/2 p-8 flex flex-col bg-white">
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-slate-900 leading-tight mb-2">{selectedProduct.name}</h2>
+                                            <p className="text-blue-600 font-bold text-sm bg-blue-50 inline-block px-3 py-1 rounded-full">{selectedProduct.specs}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="prose prose-sm text-gray-600 mb-8 max-w-none leading-relaxed">
+                                        <p>{selectedProduct.description}. Experience premium cleaning power with our specially formulated solution.</p>
+                                    </div>
+
+                                    <div className="flex flex-col gap-0 mb-6">
+                                        {selectedProduct.mrp && selectedProduct.mrp > selectedProduct.price && (
+                                            <span className="text-gray-400 text-xl font-bold decoration-2" style={{ textDecoration: 'line-through' }}>₹{selectedProduct.mrp}</span>
+                                        )}
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-4xl font-black text-red-600 tracking-tight">₹{selectedProduct.price}</span>
+                                            {selectedProduct.bestseller && (
+                                                <span className="bg-red-100 text-red-700 font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wide border border-red-200">
+                                                    Best Seller
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Quantity Controls - Bottom */}
-                                <div className="mt-8">
-                                    <div className="flex items-center justify-center bg-gray-100 rounded-full p-2">
+                                {/* Bottom Control Bar */}
+                                <div className="mt-4 bg-gray-50 rounded-2xl p-4 flex items-center justify-between border border-gray-100">
+                                    <div className="flex items-center gap-3 bg-white rounded-full p-1.5 shadow-sm border border-gray-200">
                                         <button
                                             onClick={() => updateQuantity(selectedProduct.id, -1)}
-                                            className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-600 transition-colors"
                                         >
-                                            <Minus className="w-6 h-6 text-gray-600" />
+                                            <Minus className="w-5 h-5" />
                                         </button>
-                                        <span className="mx-6 font-bold text-2xl text-gray-800 min-w-[3rem] text-center">{cart[selectedProduct.id]}</span>
+                                        <span className="font-bold text-xl text-gray-900 min-w-[2rem] text-center">{cart[selectedProduct.id]}</span>
                                         <button
                                             onClick={() => updateQuantity(selectedProduct.id, 1)}
-                                            className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                                            className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
                                         >
-                                            <Plus className="w-6 h-6" />
+                                            <Plus className="w-5 h-5" />
                                         </button>
+                                    </div>
+
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Total</p>
+                                        <p className="text-2xl font-black text-gray-900">₹{(selectedProduct.price * cart[selectedProduct.id]).toFixed(0)}</p>
                                     </div>
                                 </div>
                             </div>
