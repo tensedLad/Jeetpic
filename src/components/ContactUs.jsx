@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { usePageTracking } from '../hooks/useTracking';
 
 const ContactUs = () => {
     const navigate = useNavigate();
+    usePageTracking('ContactUsPage');
 
     return (
         <div className="min-h-screen bg-gray-50">

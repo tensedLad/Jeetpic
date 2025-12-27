@@ -12,9 +12,15 @@ import TermsAndConditions from './components/TermsAndConditions'
 import RefundPolicy from './components/RefundPolicy'
 import ShippingPolicy from './components/ShippingPolicy'
 import ContactUs from './components/ContactUs'
+import NotFound from './components/NotFound'
 import { Routes, Route } from 'react-router-dom'
+import { useVisitorTracking, useInteractionTracking } from './hooks/useTracking'
 
 function App() {
+  // Initialize tracking
+  useVisitorTracking();
+  useInteractionTracking();
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gradient-to-b from-blue-900 via-blue-600 to-white relative">
       <Routes>
@@ -42,6 +48,7 @@ function App() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   )

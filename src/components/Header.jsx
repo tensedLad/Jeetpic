@@ -34,6 +34,7 @@ const Header = () => {
                         className="bg-white hover:bg-gray-100 text-black text-sm font-semibold py-2 px-4 rounded shadow-sm transition-colors"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => document.getElementById('distributor-form').scrollIntoView({ behavior: 'smooth' })}
                     >
                         Become a Distributor
                     </motion.button>

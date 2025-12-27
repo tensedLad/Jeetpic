@@ -7,9 +7,12 @@ import { database } from '../firebase';
 import { ref, push, set, query, orderByChild, limitToLast, get } from 'firebase/database';
 import pdfMake from "pdfmake/build/pdfmake";
 import { generateInvoiceNumber, getInvoiceDocDefinition } from '../utils/invoiceGenerator';
+import { usePageTracking, useCartTracking } from '../hooks/useTracking';
+import { trackConversion, trackCheckoutStarted } from '../utils/trackingService';
 
 const QuickStorePage = () => {
     const navigate = useNavigate();
+    usePageTracking('QuickStorePage');
     const [cart, setCart] = useState({
         jeetpic: 0,
         winyle: 0,
@@ -110,6 +113,17 @@ const QuickStorePage = () => {
         }
     ];
 
+    // Track cart changes (after products defined)
+    useCartTracking(Object.values(cart).some(qty => qty > 0) ? Object.entries(cart).filter(([_, qty]) => qty > 0).map(([id, qty]) => {
+        const product = products.find(p => p.id === id);
+        return {
+            productId: id,
+            name: product?.name || id,
+            price: product?.price || 0,
+            quantity: qty,
+        };
+    }) : []);
+
     const updateQuantity = (productId, change) => {
         setCart(prev => ({
             ...prev,
@@ -144,15 +158,66 @@ const QuickStorePage = () => {
         return { subtotal, gst, shipping, total };
     };
 
+    // Validation function to prevent ghost orders
+    const validateDeliveryDetails = () => {
+        const errors = [];
+
+        // Name validation: 2+ characters, only letters/spaces/hyphens
+        if (!details.name || details.name.trim().length === 0) {
+            errors.push('Name is required');
+        } else if (details.name.trim().length < 2) {
+            errors.push('Name must be at least 2 characters');
+        } else if (!/^[a-zA-Z\s\-]+$/.test(details.name)) {
+            errors.push('Name can only contain letters, spaces, and hyphens');
+        }
+
+        // Phone validation: exactly 10 digits
+        if (!details.phone || details.phone.length === 0) {
+            errors.push('Phone number is required');
+        } else if (details.phone.length !== 10) {
+            errors.push('Phone number must be exactly 10 digits');
+        } else if (!/^[0-9]{10}$/.test(details.phone)) {
+            errors.push('Phone number must contain only digits');
+        }
+
+        // Address validation: 5+ characters
+        if (!details.address || details.address.trim().length === 0) {
+            errors.push('Address is required');
+        } else if (details.address.trim().length < 5) {
+            errors.push('Address must be at least 5 characters');
+        }
+
+        // Pincode validation: exactly 6 digits (Indian format)
+        if (!details.pincode || details.pincode.length === 0) {
+            errors.push('Pincode is required');
+        } else if (details.pincode.length !== 6) {
+            errors.push('Pincode must be exactly 6 digits');
+        } else if (!/^[0-9]{6}$/.test(details.pincode)) {
+            errors.push('Pincode must contain only digits');
+        }
+
+        return errors;
+    };
+
     const nextStep = () => {
         if (currentStep === 1 && totalItems === 0) {
             alert('Please select at least one product');
             return;
         }
-        if (currentStep === 2 && (!details.name || !details.phone || !details.address || !details.pincode)) {
-            alert('Please fill in all required delivery details');
-            return;
+        
+        if (currentStep === 2) {
+            // Validate delivery details
+            const validationErrors = validateDeliveryDetails();
+            
+            if (validationErrors.length > 0) {
+                alert('Please fix the following issues:\n\n' + validationErrors.join('\n'));
+                return;
+            }
+            
+            // Track checkout initiation when moving to payment step (step 3)
+            trackCheckoutStarted(details);
         }
+        
         setCurrentStep(prev => Math.min(3, prev + 1));
     };
 
@@ -165,6 +230,14 @@ const QuickStorePage = () => {
     };
 
     const handleSendToWhatsApp = async () => {
+        // Validate delivery details before sending to WhatsApp
+        const validationErrors = validateDeliveryDetails();
+        
+        if (validationErrors.length > 0) {
+            alert('Cannot place order. Please fix the following issues:\n\n' + validationErrors.join('\n'));
+            return;
+        }
+
         setProcessingMethod('whatsapp');
 
         try {
@@ -209,8 +282,11 @@ const QuickStorePage = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!details.name || !details.phone || !details.address || !details.pincode) {
-            alert('Please fill in all required fields');
+        // Validate delivery details before placing order
+        const validationErrors = validateDeliveryDetails();
+        
+        if (validationErrors.length > 0) {
+            alert('Cannot place order. Please fix the following issues:\n\n' + validationErrors.join('\n'));
             return;
         }
 
@@ -267,6 +343,15 @@ const QuickStorePage = () => {
             // Push to Firebase
             await set(newOrderRef, orderData);
 
+            // Track conversion
+            const totalAmount = calculateTotal().total;
+            await trackConversion(newOrderRef.key, {
+                amount: totalAmount,
+                items: processedItems,
+                customerEmail: details.email || null,
+                customerPhone: details.phone || null,
+            });
+
             // Store for confirmation page
             setStoredOrderData(orderData);
             setOrderPlaced(true);
@@ -300,8 +385,11 @@ const QuickStorePage = () => {
     };
 
     const handlePrepaidOrder = async () => {
-        if (!details.name || !details.phone || !details.address || !details.pincode) {
-            alert('Please fill in all required fields');
+        // Validate delivery details before processing payment
+        const validationErrors = validateDeliveryDetails();
+        
+        if (validationErrors.length > 0) {
+            alert('Cannot process payment. Please fix the following issues:\n\n' + validationErrors.join('\n'));
             return;
         }
 
@@ -698,7 +786,11 @@ const QuickStorePage = () => {
                                                     type="text"
                                                     placeholder="Full Name *"
                                                     value={details.name}
-                                                    onChange={(e) => setDetails(prev => ({ ...prev, name: e.target.value }))}
+                                                    onChange={(e) => {
+                                                        // Filter: Only letters, spaces, and hyphens
+                                                        const filtered = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                        setDetails(prev => ({ ...prev, name: filtered }));
+                                                    }}
                                                     className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
                                                     required
                                                 />
@@ -713,7 +805,11 @@ const QuickStorePage = () => {
                                                     type="tel"
                                                     placeholder="Phone Number *"
                                                     value={details.phone}
-                                                    onChange={(e) => setDetails(prev => ({ ...prev, phone: e.target.value }))}
+                                                    onChange={(e) => {
+                                                        // Filter: Only numbers (integers)
+                                                        const filtered = e.target.value.replace(/[^0-9]/g, '');
+                                                        setDetails(prev => ({ ...prev, phone: filtered }));
+                                                    }}
                                                     className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
                                                     required
                                                 />
@@ -742,7 +838,11 @@ const QuickStorePage = () => {
                                                     type="text"
                                                     placeholder="Pincode / Zip Code *"
                                                     value={details.pincode}
-                                                    onChange={(e) => setDetails(prev => ({ ...prev, pincode: e.target.value }))}
+                                                    onChange={(e) => {
+                                                        // Filter: Only numbers (integers)
+                                                        const filtered = e.target.value.replace(/[^0-9]/g, '');
+                                                        setDetails(prev => ({ ...prev, pincode: filtered }));
+                                                    }}
                                                     className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 placeholder-gray-400 font-medium transition-all focus:bg-white focus:outline-none focus:shadow-sm"
                                                     required
                                                 />

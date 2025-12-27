@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { useFormTracking } from '../hooks/useTracking';
+
 const PartnerForm = () => {
+    useFormTracking('partnerForm');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -76,6 +79,7 @@ const PartnerForm = () => {
                     <AnimatePresence mode="wait">
                         {!isSuccess ? (
                             <motion.form
+                                id="partnerForm"
                                 key="form"
                                 className="space-y-4"
                                 onSubmit={handleSubmit}
