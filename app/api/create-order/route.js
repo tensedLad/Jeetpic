@@ -1,11 +1,4 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-
-// Connect to MongoDB
-const connectDB = async () => {
-  if (mongoose.connections[0].readyState) return;
-  await mongoose.connect(process.env.MONGODB_URI);
-};
 
 // Input validation utilities
 const validateAndSanitize = (input) => {
@@ -43,22 +36,6 @@ const validateAmount = (amount) => {
   }
   return num;
 };
-
-// Order Schema
-const OrderSchema = new mongoose.Schema({
-  customer: {
-    name: String,
-    phone: String,
-    address: String,
-    pincode: String,
-  },
-  items: Object, // { productId: quantity }
-  amount: Number,
-  status: { type: String, default: 'PENDING' },
-  createdAt: { type: Date, default: Date.now },
-});
-
-const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 
 // Product data for message generation
 const products = {
@@ -99,8 +76,6 @@ export async function POST(request) {
     if (request.method !== 'POST') {
       return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
     }
-
-    await connectDB();
 
     const { customer, items, amount } = await request.json();
 
