@@ -61,8 +61,8 @@ const QuickStorePage = () => {
         {
             id: 'jeetpic',
             name: 'Jeetpic Toilet Cleaner',
-            price: 1,
-            mrp: 9,
+            price: 150,
+            mrp: 199,
             images: [
                 '/jeetpic.png',
                 'https://via.placeholder.com/150x150?text=Jeetpic+Label',
@@ -74,8 +74,8 @@ const QuickStorePage = () => {
         {
             id: 'winyle',
             name: 'Winyle Floor Cleaner',
-            price: 1,
-            mrp: 9,
+            price: 120,
+            mrp: 179,
             images: [
                 '/winyle.png',
                 'https://via.placeholder.com/150x150?text=Winyle+Label',
@@ -87,8 +87,8 @@ const QuickStorePage = () => {
         {
             id: 'phynyl',
             name: 'Winyle Phynyl',
-            price: 1,
-            mrp: 9,
+            price: 80,
+            mrp: 129,
             images: [
                 '/phynyl.png',
                 'https://via.placeholder.com/150x150?text=Phynyl+Label',
@@ -100,8 +100,8 @@ const QuickStorePage = () => {
         {
             id: 'combo',
             name: 'Combo Pack (2 Jeetpic + 1 Winyle)',
-            price: 1,
-            mrp: 27,
+            price: 399,
+            mrp: 559,
             images: [
                 '/combo.png',
                 'https://via.placeholder.com/150x150?text=Combo+Pack+Open',
