@@ -13,6 +13,7 @@ import RefundPolicy from './components/RefundPolicy'
 import ShippingPolicy from './components/ShippingPolicy'
 import ContactUs from './components/ContactUs'
 import NotFound from './components/NotFound'
+import ServerError from './components/ServerError'
 import { Routes, Route } from 'react-router-dom'
 import { useVisitorTracking, useInteractionTracking } from './hooks/useTracking'
 
@@ -48,6 +49,7 @@ function App() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/error" element={<ServerError />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
